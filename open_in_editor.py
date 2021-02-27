@@ -205,6 +205,13 @@ def open_vim(uri: File, line: Optional[Line]) -> None:
     launch_in_terminal(['vim', *args])
 
 
+def open_vscode(uri: File, line: Optional[Line]) -> None:
+    if line:
+        args = ['--goto', f'{uri}:{line}']
+    else:
+        args = [uri]
+    check_call(['code', *args])
+
 def open_emacs(uri: File, line: Optional[Line]) -> None:
     args = with_line(uri, line)
     cmd = [
@@ -233,6 +240,7 @@ EDITORS = {
     'emacs'  : open_emacs,
     'vim'    : open_vim,
     'gvim'   : open_gvim,
+    'vscode' : open_vscode,
     'default': open_default,
 	'kwrite' : open_kwrite,
 }
