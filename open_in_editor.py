@@ -30,44 +30,6 @@ The script was tested on *Linux only*! I'd be happy if someone contributes adjus
 PROTOCOL_NAME = 'editor'
 
 
-def test_parse_uri():
-    assert parse_uri('editor:///path/to/file') == (
-        '/path/to/file',
-        None,
-    )
-
-    assert parse_uri('editor:///path/with spaces') == (
-        '/path/with spaces',
-        None,
-    )
-
-    assert parse_uri('editor:///path/url%20encoded') == (
-        '/path/url encoded',
-        None,
-    )
-
-    # TODO not sure about whether this or lien= thing is preferrable
-    assert parse_uri('editor:///path/to/file:10') == (
-        '/path/to/file',
-        10,
-    )
-
-    # todo not sure about this. I guess it's a more 'proper' way? non ambiguous and supports columns and other stuff potentially
-    assert parse_uri('editor:///path/to/file?line=10') == (
-        '/path/to/file',
-        10,
-    )
-
-    assert parse_uri('editor:///path/to/file:oops/and:more') == (
-        '/path/to/file:oops/and:more',
-        None,
-    )
-
-    import pytest # type: ignore
-    with pytest.raises(Exception):
-        parse_uri('badmime://whatever')
-
-
 def test_open_editor():
     import time
     from tempfile import TemporaryDirectory
@@ -134,6 +96,31 @@ from typing import Tuple, Optional, List
 Line = int
 File = str
 def parse_uri(uri: str) -> Tuple[File, Optional[Line]]:
+    """
+    >>> parse_uri('editor:///path/to/file')
+    ('/path/to/file', None)
+
+    >>> parse_uri("editor:///path/with spaces")
+    ('/path/with spaces', None)
+
+    >>> parse_uri("editor:///path/url%20encoded")
+    ('/path/url encoded', None)
+
+    # TODO not sure about whether this or lien= thing is preferrable
+    >>> parse_uri("editor:///path/to/file:10")
+    ('/path/to/file', 10)
+
+    # todo not sure about this. I guess it's a more 'proper' way? non ambiguous and supports columns and other stuff potentially
+    >>> parse_uri("editor:///path/to/file?line=10")
+    ('/path/to/file', 10)
+
+    >>> parse_uri("editor:///path/to/file:oops/and:more")
+    ('/path/to/file:oops/and:more', None)
+
+    >>> parse_uri('badmime://whatever')
+    Traceback (most recent call last):
+    RuntimeError: Unexpected protocol badmime://whatever
+    """
     pr = urlparse(uri)
     if pr.scheme != PROTOCOL_NAME:
         error(f"Unexpected protocol {uri}")
@@ -267,8 +254,8 @@ def main():
     p.add_argument('--run-tests', action='store_true', help='Pass to run unit tests')
     args = p.parse_args()
     if args.run_tests:
-        # fuck, pytest can't run against a file without .py extension?
-        test_parse_uri()
+        import doctest
+        doctest.testmod()
         test_open_editor()
     elif args.install:
         install(editor=args.editor)
